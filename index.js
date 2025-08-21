@@ -1,11 +1,16 @@
 const http = require('http');
 const url = require('url');
 
-const { routeSecret, ...rest } = process.env
-if (!routeSecret) {
+let { routeSecret, blacklistedKeys, ...rest } = process.env
+if (!routeSecret || !blacklistedKeys) {
   console.error('Environment variable "routeSecret" is not set.');
   process.exit(1);
 }
+
+blacklistedKeys = blacklistedKeys.split(',').map(key => key.trim())
+rest = Object.fromEntries(
+  Object.entries(rest).filter(([key]) => !blacklistedKeys.includes(key))
+);
 
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
